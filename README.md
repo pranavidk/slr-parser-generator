@@ -1,4 +1,4 @@
-# SLR Parser Generator — Team 7 (Review 2)
+# SLR Parser Generator — Team 7
 
 Design and Implementation of an SLR Parser Generator Using LR(0) Item Sets,
 Closure-GOTO Construction, ACTION-GOTO Tables and Syntax-Directed Translation.
@@ -18,7 +18,7 @@ Linux / macOS / WSL / MSYS2:
 ```bash
 make            # builds ./slr
 make test       # builds and runs the 35-test suite
-make demo       # runs the Review 2 demo commands
+make demo       # runs the demo commands
 ```
 
 Windows (MinGW / TDM-GCC on PATH):
