@@ -1,0 +1,6 @@
+# Extended grammar — adds '-' and '/' at the right precedence levels.
+# Shows the generator works on any SLR(1) grammar without code changes.
+S -> id = E
+E -> E + T | E - T | T
+T -> T * F | T / F | F
+F -> ( E ) | id | num

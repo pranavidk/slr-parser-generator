@@ -1,0 +1,9 @@
+# build outputs
+slr
+test_slr
+*.exe
+*.o
+*.dSYM/
+
+# macOS
+.DS_Store

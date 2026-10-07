@@ -1,0 +1,5 @@
+# Deliberately ambiguous grammar — used to demonstrate conflict detection.
+# No precedence/associativity is encoded, so the SLR table has
+# shift/reduce conflicts on '+' and '*'.
+S -> id = E
+E -> E + E | E * E | ( E ) | id | num

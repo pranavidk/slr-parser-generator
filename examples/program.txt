@@ -1,0 +1,9 @@
+x = a + b * c
+y = (a + b) * c
+z = 42
+w = (((num1)))
+bad1 = + 5
+bad2 = (a + b
+bad3 = a *
+total = x + y * z; avg = total * 3
+oops = a @ b

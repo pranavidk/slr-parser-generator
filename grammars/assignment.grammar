@@ -1,0 +1,6 @@
+# Project grammar (Review 1, slide 3)
+# Assignment statements over +, *, parentheses, identifiers and numbers.
+S -> id = E
+E -> E + T | T
+T -> T * F | F
+F -> ( E ) | id | num
