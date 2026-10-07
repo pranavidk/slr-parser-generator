@@ -168,6 +168,7 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 
 - An SLR parser can perform a few extra reductions before it detects an error, because FOLLOW sets are coarser than exact lookaheads. It never shifts a bad token, so the reported error position is always exact.
 - Recovery is per statement. Within one statement, only the first syntax error is reported.
+- For a grammar that is not SLR(1), the shift-wins resolution produces a usable table but not necessarily the intended meaning. With `ambiguous.grammar`, `x = a * b + c` translates as `a * (b + c)` (`t1 = b + c`, `t2 = a * t1`), because every operator binds tighter than the ones before it. The conflict report is the warning. The fix is to layer the grammar, as `assignment.grammar` does.
 - Semantic actions cover the shapes our language uses (copy, assignment, parentheses, binary operators). A grammar with other shapes, such as unary minus or function calls, gets a clear "no semantic action defined" error and would need a new rule in `sdt.c`.
 - There is no type checking or symbol table. That is outside this project's scope (it is Team 11's title).
 
