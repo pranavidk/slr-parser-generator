@@ -3,7 +3,8 @@
  *
  * Section A re-runs the 7 test cases from the Review 1 test plan (slide 10),
  * with concrete identifiers/numbers in place of id / num.
- * The other sections cover each module individually.
+ * Sections B-F cover each module individually. Section G runs whole
+ * programs through every grammar and checks the exact TAC or diagnostic.
  *
  * Build & run from the project root:   make test
  */
@@ -448,6 +449,80 @@ static void test_tac_quadruples(void)
 }
 
 /* ------------------------------------------------------------------ */
+/* G. End-to-end cases (expected output derived by hand)               */
+/* ------------------------------------------------------------------ */
+typedef struct {
+    const char *grammar, *src;
+    const char *tac[6];                 /* NULL-terminated */
+} TacCase;
+
+typedef struct {
+    const char *grammar, *src;
+    DiagKind kind;
+    int col;
+    const char *message;                /* substring of the diagnostic */
+} ErrCase;
+
+static void test_e2e_accepted_programs(void)
+{
+    static const TacCase cases[] = {
+        {"assignment", "a = b",                 {"a = b"}},
+        {"assignment", "x = a * b * c",         {"t1 = a * b", "t2 = t1 * c", "x = t2"}},
+        {"assignment", "x = a * b + c * d",     {"t1 = a * b", "t2 = c * d", "t3 = t1 + t2", "x = t3"}},
+        {"assignment", "x = a * (b + c)",       {"t1 = b + c", "t2 = a * t1", "x = t2"}},
+        {"assignment", "p = a + b * c + d",     {"t1 = b * c", "t2 = a + t1", "t3 = t2 + d", "p = t3"}},
+        {"assignment", "q = (a + b) * (c + d)", {"t1 = a + b", "t2 = c + d", "t3 = t1 * t2", "q = t3"}},
+        {"assignment", "x = 2 * 3 + 4",         {"t1 = 2 * 3", "t2 = t1 + 4", "x = t2"}},
+        {"assignment", "x = ((a))",             {"x = a"}},
+        {"extended",   "r = a / b * c",         {"t1 = a / b", "t2 = t1 * c", "r = t2"}},
+        {"extended",   "r = a - b + c",         {"t1 = a - b", "t2 = t1 + c", "r = t2"}},
+        {"extended",   "r = a - (b - c)",       {"t1 = b - c", "t2 = a - t1", "r = t2"}},
+        {"extended",   "r = a + b / c - d * e", {"t1 = b / c", "t2 = a + t1", "t3 = d * e", "t4 = t2 - t3", "r = t4"}},
+        /* shift wins every conflict, so the later operator binds tighter */
+        {"ambiguous",  "x = a * b + c",         {"t1 = b + c", "t2 = a * t1", "x = t2"}},
+    };
+    size_t i;
+    for (i = 0; i < sizeof cases / sizeof cases[0]; i++) {
+        const TacCase *c = &cases[i];
+        SLRGen *g = load(c->grammar);
+        StatementResult *st = one(g, c->src);
+        int n = 0;
+        while (n < 6 && c->tac[n]) n++;
+        if (!(st && st->accepted && tac_equals(g, c->tac, n)))
+            printf("    case: %s  [%s]\n", c->src, c->grammar);
+        CHECK(st && st->accepted);
+        CHECK(tac_equals(g, c->tac, n));
+        gen_free(g);
+    }
+}
+
+static void test_e2e_rejected_programs(void)
+{
+    static const ErrCase cases[] = {
+        {"assignment", "x = (a + b))", DIAG_SYNTAX,  12, "unexpected ')'"},
+        {"assignment", "x = a + * b",  DIAG_SYNTAX,   9, "unexpected '*'"},
+        {"assignment", "x = a +",      DIAG_SYNTAX,   8, "end of input"},
+        {"assignment", "x a + b",      DIAG_SYNTAX,   3, "unexpected 'a'"},
+        {"assignment", "= a + b",      DIAG_SYNTAX,   1, "unexpected '='"},
+        {"assignment", "x = a - b",    DIAG_LEXICAL,  7, "'-'"},
+        {"extended",   "x = a // b",   DIAG_SYNTAX,   8, "unexpected '/'"},
+    };
+    size_t i;
+    for (i = 0; i < sizeof cases / sizeof cases[0]; i++) {
+        const ErrCase *c = &cases[i];
+        SLRGen *g = load(c->grammar);
+        StatementResult *st = one(g, c->src);
+        int ok = st && !st->accepted && st->ndiags >= 1 &&
+                 st->diags[0].kind == c->kind && st->diags[0].col == c->col &&
+                 strstr(st->diags[0].message, c->message) != NULL;
+        if (!ok) printf("    case: %s  [%s]\n", c->src, c->grammar);
+        CHECK(ok);
+        CHECK(g->tac.nquads == 0);
+        gen_free(g);
+    }
+}
+
+/* ------------------------------------------------------------------ */
 int main(void)
 {
     printf("A. Review 1 test plan (slide 10)\n");
@@ -494,6 +569,10 @@ int main(void)
     RUN(test_tac_rejected_statement_emits_no_code);
     RUN(test_tac_extended_grammar_without_code_changes);
     RUN(test_tac_quadruples);
+
+    printf("\nG. End-to-end cases\n");
+    RUN(test_e2e_accepted_programs);
+    RUN(test_e2e_rejected_programs);
 
     printf("\n%d tests, %d passed, %d failed\n", tests_run, tests_run - tests_failed, tests_failed);
     return tests_failed ? 1 : 0;

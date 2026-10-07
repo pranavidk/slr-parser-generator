@@ -97,7 +97,7 @@ source text ──► Lexer ──► shift-reduce driver + value stack ──�
 | 3 | Nitin (24BCE2819) | `first_follow.c/.h`, `slr_table.c/.h` | FIRST/FOLLOW as 64-bit bitsets with ε support. The ACTION/GOTO table uses the slide 7 rules. Shift/reduce and reduce/reduce conflicts are recorded with the state, terminal and items involved. |
 | 4 | Shafin (24BCE2860) | `parser.c/.h`, `pipeline.c/.h` | The table-driven driver with parallel state and value stacks, the step-by-step trace, diagnostics, and statement-level error recovery. |
 | 5 | Pranav (24BCE2773) | `sdt.c/.h` | The `place` attribute, `newTemp()`, the semantic actions from slide 9, and TAC plus quadruples. |
-| all | Whole team | `main.c`, `tests/test_slr.c` | The command-line driver and the 33-test verification suite. |
+| all | Whole team | `main.c`, `tests/test_slr.c` | The command-line driver and the 35-test verification suite. |
 
 The Review 1 slides do not list module owners. The assignment above was recorded on 7 Oct 2026.
 
@@ -144,7 +144,7 @@ The Review 1 slides do not list module owners. The assignment above was recorded
 The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = t2`, which matches the slide.
 
 ### Automated checks
-- **33 unit tests** (`make test`), grouped by module: Review 1 cases (7), grammar (4), LR(0) (3), FIRST/FOLLOW/table/conflicts (5), parser and recovery (8), SDT/TAC (6).
+- **35 tests** (`make test`), grouped by module: Review 1 cases (7), grammar (4), LR(0) (3), FIRST/FOLLOW/table/conflicts (5), parser and recovery (8), SDT/TAC (6), plus 2 table-driven end-to-end tests covering 13 accepted and 7 rejected programs across all three grammars.
 - The build has **zero warnings** under `gcc` and `clang` with `-std=c99 -Wall -Wextra -pedantic`.
 - AddressSanitizer, UBSan and valgrind report **no memory errors and no leaks**.
 - The C output was cross-checked against the independent Python implementation on all demo inputs and is identical.
@@ -200,7 +200,7 @@ slr_c/
 ├── build.bat            Windows build
 ├── include/             one header per module (documented)
 ├── src/                 grammar, lexer, lr0, first_follow, slr_table, parser, sdt, pipeline, main
-├── tests/test_slr.c     33-test verification suite
+├── tests/test_slr.c     35-test verification suite
 ├── grammars/            assignment (project), extended, ambiguous
 └── examples/program.txt multi-statement demo with deliberate errors
 ```

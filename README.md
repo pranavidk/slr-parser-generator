@@ -17,7 +17,7 @@ UBSan and valgrind.
 Linux / macOS / WSL / MSYS2:
 ```bash
 make            # builds ./slr
-make test       # builds and runs the 33-test suite
+make test       # builds and runs the 35-test suite
 make demo       # runs the Review 2 demo commands
 ```
 
@@ -94,7 +94,7 @@ Limits are `#define`s at the top of each header (e.g. `MAX_STATES 256`,
 | Core algorithm completeness & correctness (6) | `./slr --all ...`: every stage from grammar to TAC; works on any grammar file |
 | Verified against Review 1 test cases (4) | `make test` → section A, cases 1–7 from slide 10 |
 | Error handling & diagnostics (3) | Line/col + caret, parser state, expected tokens, targeted hint; lexical errors; recovery continues to next statement; conflict report with items |
-| Code quality (2) | One module per stage, header comments, 33 unit tests, warning-free, sanitizer/valgrind clean |
+| Code quality (2) | One module per stage, header comments, 35 tests, warning-free, sanitizer/valgrind clean |
 
 ## Error diagnostics
 
