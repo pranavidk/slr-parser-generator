@@ -29,7 +29,7 @@ reasons behind each decision.
 
 ## 2. What we've worked on (timeline)
 
-### Review 1 (slides dated 1 Sep 2026)
+### Review 1 (slides dated 1 Sep 2026, in [`docs/Review 1 slides.pdf`](docs/Review%201%20slides.pdf))
 - Problem statement and scope: Grammar → LR(0) states → SLR table → parsing → semantic actions → TAC.
 - Fixed the project grammar (9 numbered productions after augmentation, see §3).
 - Algorithm design for closure(), GOTO(), the canonical collection, the SLR table rules, the parser loop, conflict detection, error reporting and SDT action templates.
@@ -187,7 +187,7 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
   - [ ] Conclusion and **individual contribution summary** (each member describes their module)
 - [ ] **Plagiarism report** for the document
 - [ ] **Final presentation slides**, updated from Review 1 with real outputs replacing the illustrative ones (e.g. the slide 7 table fragment shows illustrative state numbers; use the real table from `--table`)
-- [ ] Commit everything to the team repository, so commit history shows each member's work (Review 1 asked for version control as evidence of team coordination)
+- [ ] Push to a shared team remote (e.g. GitHub) so each member can commit their own part (Review 1 asked for version control as evidence of team coordination). A local git repository was created on 7 Oct 2026 with the history so far.
 - [ ] Build with real `gcc` (Linux/WSL, or `build.bat` under MinGW) and run `valgrind ./test_slr` to confirm the warning-free and leak-free claims there too
 - [ ] Optional extras if time allows: print the parse tree, add unary minus, export the table as CSV
 
@@ -199,11 +199,12 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 slr_c/
 ├── README.md            build & run instructions
 ├── PROJECT_NOTES.md     this file
+├── docs/                Review 1 slides
 ├── Makefile             make / make test / make demo
 ├── build.bat            Windows build
 ├── include/             one header per module (documented)
 ├── src/                 grammar, lexer, lr0, first_follow, slr_table, parser, sdt, pipeline, main
-├── tests/test_slr.c     35-test verification suite
+├── tests/test_slr.c     35-test verification suite (sections A-G)
 ├── grammars/            assignment (project), extended, ambiguous
 └── examples/program.txt multi-statement demo with deliberate errors
 ```
