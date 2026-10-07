@@ -5,6 +5,8 @@ Closure-GOTO Construction, ACTION-GOTO Tables and Syntax-Directed Translation.
 
 Team: 24BCE2760, 24BCE2773, 24BCE2778, 24BCE2819, 24BCE2860
 
+Repository: <https://github.com/pranavidk/slr-parser-generator>
+
 > Project history, design decisions, verification results and remaining goals
 > are in **[PROJECT_NOTES.md](PROJECT_NOTES.md)**.
 

@@ -14,6 +14,7 @@ reasons behind each decision.
 | **Title** | Design and Implementation of an SLR Parser Generator Using LR(0) Item Sets, Closure-GOTO Construction, ACTION-GOTO Tables and Syntax-Directed Translation |
 | **Course** | Compiler Design — G1 slot, Team 7 |
 | **Team** | 24BCE2760 (Isaac), 24BCE2773 (Pranav), 24BCE2778 (Prithvi), 24BCE2819 (Nitin Sunil), 24BCE2860 (Shafin) |
+| **Repository** | <https://github.com/pranavidk/slr-parser-generator> (public) |
 | **Final language** | C (C99, standard library only) |
 | **Status** | Review 1 done · Review 2 implementation complete and verified · Final presentation pending |
 
@@ -187,7 +188,8 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
   - [ ] Conclusion and **individual contribution summary** (each member describes their module)
 - [ ] **Plagiarism report** for the document
 - [ ] **Final presentation slides**, updated from Review 1 with real outputs replacing the illustrative ones (e.g. the slide 7 table fragment shows illustrative state numbers; use the real table from `--table`)
-- [ ] Push to a shared team remote (e.g. GitHub) so each member can commit their own part (Review 1 asked for version control as evidence of team coordination). A local git repository was created on 7 Oct 2026 with the history so far.
+- [x] Push to GitHub: <https://github.com/pranavidk/slr-parser-generator> (public, 7 Oct 2026)
+- [ ] Add each teammate as a collaborator so they can commit their own part (Review 1 asked for version control as evidence of team coordination)
 - [ ] Build with real `gcc` (Linux/WSL, or `build.bat` under MinGW) and run `valgrind ./test_slr` to confirm the warning-free and leak-free claims there too
 - [ ] Optional extras if time allows: print the parse tree, add unary minus, export the table as CSV
 
