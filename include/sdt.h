@@ -1,6 +1,6 @@
 /*
  * Module 5 - Syntax-Directed Translation & Three-Address Code
- * (Owner: Member 5)
+ * (Owner: Member 5 - Pranav, 24BCE2773)
  *
  * Every symbol on the value stack carries a synthesized attribute `place`
  * (the name or temporary holding its value). Actions run on each reduction

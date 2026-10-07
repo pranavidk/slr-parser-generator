@@ -54,16 +54,16 @@ grammar file -> Grammar (augment S'->S) -> LR(0) collection (closure/GOTO)
 source text  -> Lexer -> shift-reduce driver (+ value stack) -> semantic actions -> TAC / quadruples
 ```
 
-## Module ownership (same split as Review 1)
+## Module ownership
 
-| Member | Files | Responsibility |
-|---|---|---|
-| 1 | `grammar.c/.h`, `lexer.c/.h` | Grammar file parsing, numbering, augmentation, validation; tokenizer |
-| 2 | `lr0.c/.h` | LR(0) items, `lr0_closure()`, `lr0_goto()`, canonical collection |
-| 3 | `first_follow.c/.h`, `slr_table.c/.h` | FIRST/FOLLOW (bitsets), ACTION/GOTO table, shift/reduce & reduce/reduce conflict detection |
-| 4 | `parser.c/.h`, `pipeline.c/.h` | Table-driven driver, parse trace, diagnostics, statement-level error recovery |
-| 5 | `sdt.c/.h` | Semantic actions, `place` attributes, `newTemp()`, TAC + quadruples |
-| all | `main.c`, `tests/test_slr.c` | CLI, verification suite |
+| Member | Name | Files | Responsibility |
+|---|---|---|---|
+| 1 | Isaac (24BCE2760) | `grammar.c/.h`, `lexer.c/.h` | Grammar file parsing, numbering, augmentation, validation; tokenizer |
+| 2 | Prithvi (24BCE2778) | `lr0.c/.h` | LR(0) items, `lr0_closure()`, `lr0_goto()`, canonical collection |
+| 3 | Nitin (24BCE2819) | `first_follow.c/.h`, `slr_table.c/.h` | FIRST/FOLLOW (bitsets), ACTION/GOTO table, shift/reduce & reduce/reduce conflict detection |
+| 4 | Shafin (24BCE2860) | `parser.c/.h`, `pipeline.c/.h` | Table-driven driver, parse trace, diagnostics, statement-level error recovery |
+| 5 | Pranav (24BCE2773) | `sdt.c/.h` | Semantic actions, `place` attributes, `newTemp()`, TAC + quadruples |
+| all | Whole team | `main.c`, `tests/test_slr.c` | CLI, verification suite |
 
 ## Key data structures
 

@@ -88,18 +88,18 @@ grammar file ──► Grammar ──► LR(0) collection ──► FIRST/FOLLOW
 source text ──► Lexer ──► shift-reduce driver + value stack ──► semantic actions ──► TAC / quadruples
 ```
 
-### Modules (same split as Review 1)
+### Modules
 
-| Member | Files | What it does |
-|---|---|---|
-| 1 | `grammar.c/.h`, `lexer.c/.h` | Reads the grammar text, numbers the productions, classifies symbols, adds `S' → S`, and warns about unreachable or non-productive nonterminals. The lexer derives its token classes from the grammar's terminals. |
-| 2 | `lr0.c/.h` | LR(0) items `(prod, dot)`, `lr0_closure()`, `lr0_goto()`, and the canonical collection built by fixed-point iteration with stable state numbering. |
-| 3 | `first_follow.c/.h`, `slr_table.c/.h` | FIRST/FOLLOW as 64-bit bitsets with ε support. The ACTION/GOTO table uses the slide 7 rules. Shift/reduce and reduce/reduce conflicts are recorded with the state, terminal and items involved. |
-| 4 | `parser.c/.h`, `pipeline.c/.h` | The table-driven driver with parallel state and value stacks, the step-by-step trace, diagnostics, and statement-level error recovery. |
-| 5 | `sdt.c/.h` | The `place` attribute, `newTemp()`, the semantic actions from slide 9, and TAC plus quadruples. |
-| all | `main.c`, `tests/test_slr.c` | The command-line driver and the 33-test verification suite. |
+| Member | Name | Files | What it does |
+|---|---|---|---|
+| 1 | Isaac (24BCE2760) | `grammar.c/.h`, `lexer.c/.h` | Reads the grammar text, numbers the productions, classifies symbols, adds `S' → S`, and warns about unreachable or non-productive nonterminals. The lexer derives its token classes from the grammar's terminals. |
+| 2 | Prithvi (24BCE2778) | `lr0.c/.h` | LR(0) items `(prod, dot)`, `lr0_closure()`, `lr0_goto()`, and the canonical collection built by fixed-point iteration with stable state numbering. |
+| 3 | Nitin (24BCE2819) | `first_follow.c/.h`, `slr_table.c/.h` | FIRST/FOLLOW as 64-bit bitsets with ε support. The ACTION/GOTO table uses the slide 7 rules. Shift/reduce and reduce/reduce conflicts are recorded with the state, terminal and items involved. |
+| 4 | Shafin (24BCE2860) | `parser.c/.h`, `pipeline.c/.h` | The table-driven driver with parallel state and value stacks, the step-by-step trace, diagnostics, and statement-level error recovery. |
+| 5 | Pranav (24BCE2773) | `sdt.c/.h` | The `place` attribute, `newTemp()`, the semantic actions from slide 9, and TAC plus quadruples. |
+| all | Whole team | `main.c`, `tests/test_slr.c` | The command-line driver and the 33-test verification suite. |
 
-> **TODO:** confirm which teammate owns which member number above, matching the Review 1 slides.
+The Review 1 slides do not list module owners. The assignment above was recorded on 7 Oct 2026.
 
 ### Key data structures
 

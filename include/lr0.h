@@ -1,6 +1,6 @@
 /*
  * Module 2 - LR(0) Items, closure(), GOTO() and the Canonical Collection
- * (Owner: Member 2)
+ * (Owner: Member 2 - Prithvi, 24BCE2778)
  *
  * An LR(0) item is (production index, dot position). A state is a sorted
  * set of items. The canonical collection starts from

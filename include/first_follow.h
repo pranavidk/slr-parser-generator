@@ -1,6 +1,6 @@
 /*
  * Module 3a - FIRST and FOLLOW set computation
- * (Owner: Member 3)
+ * (Owner: Member 3 - Nitin, 24BCE2819)
  *
  * FOLLOW sets decide where reductions are placed in the SLR table - that is
  * what distinguishes SLR from plain LR(0). Both are computed by fixed-point

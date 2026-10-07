@@ -1,6 +1,6 @@
 /*
  * Module 4 - Shift-Reduce Parsing Engine & Error Diagnostics
- * (Owner: Member 4)
+ * (Owner: Member 4 - Shafin, 24BCE2860)
  *
  * Table-driven LR driver (Review 1, slide 8):
  *   stack = [0]

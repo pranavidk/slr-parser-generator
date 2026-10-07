@@ -1,5 +1,5 @@
 /*
- * Module 5 - SDT & Three-Address Code (Owner: Member 5)
+ * Module 5 - SDT & Three-Address Code (Owner: Member 5 - Pranav, 24BCE2773)
  */
 #include "sdt.h"
 

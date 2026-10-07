@@ -1,5 +1,5 @@
 /*
- * Module 2 - LR(0) Items, closure(), GOTO(), Canonical Collection (Owner: Member 2)
+ * Module 2 - LR(0) Items, closure(), GOTO(), Canonical Collection (Owner: Member 2 - Prithvi, 24BCE2778)
  */
 #include "lr0.h"
 

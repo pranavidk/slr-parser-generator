@@ -1,5 +1,5 @@
 /*
- * Lexer (Owner: Member 1)
+ * Lexer (Owner: Member 1 - Isaac, 24BCE2760)
  */
 #include "lexer.h"
 

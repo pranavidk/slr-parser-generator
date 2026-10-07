@@ -1,6 +1,6 @@
 /*
  * Module 3b - SLR ACTION/GOTO Table Construction & Conflict Detection
- * (Owner: Member 3)
+ * (Owner: Member 3 - Nitin, 24BCE2819)
  *
  * Rules (Review 1, slide 7):
  *   Shift : A -> a.xb in I, x terminal, GOTO(I,x)=J  => ACTION[I,x] = sJ

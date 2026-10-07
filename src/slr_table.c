@@ -1,5 +1,5 @@
 /*
- * Module 3b - SLR ACTION/GOTO table + conflict detection (Owner: Member 3)
+ * Module 3b - SLR ACTION/GOTO table + conflict detection (Owner: Member 3 - Nitin, 24BCE2819)
  */
 #include "slr_table.h"
 

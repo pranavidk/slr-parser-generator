@@ -1,6 +1,6 @@
 /*
  * Module 1 - Grammar Specification, Loading & Augmentation
- * (Owner: Member 1)
+ * (Owner: Member 1 - Isaac, 24BCE2760)
  *
  * Reads a context-free grammar from plain text, numbers the productions,
  * classifies symbols into terminals / nonterminals, augments the grammar

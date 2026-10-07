@@ -1,5 +1,5 @@
 /*
- * Pipeline (Owner: Member 4, shared)
+ * Pipeline (Owner: Member 4 - Shafin, 24BCE2860, shared)
  */
 #include "pipeline.h"
 
