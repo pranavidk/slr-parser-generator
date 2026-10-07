@@ -9,8 +9,8 @@ Team: 24BCE2760, 24BCE2773, 24BCE2778, 24BCE2819, 24BCE2860
 > are in **[PROJECT_NOTES.md](PROJECT_NOTES.md)**.
 
 Plain **C99**, standard library only. Builds warning-free with
-`gcc`/`clang -std=c99 -Wall -Wextra -pedantic`; clean under AddressSanitizer,
-UBSan and valgrind.
+`clang -std=c99 -Wall -Wextra -pedantic`; no errors under AddressSanitizer
+and UBSan, and no memory leaks.
 
 ## Build
 
@@ -94,7 +94,7 @@ Limits are `#define`s at the top of each header (e.g. `MAX_STATES 256`,
 | Core algorithm completeness & correctness (6) | `./slr --all ...`: every stage from grammar to TAC; works on any grammar file |
 | Verified against Review 1 test cases (4) | `make test` → section A, cases 1–7 from slide 10 |
 | Error handling & diagnostics (3) | Line/col + caret, parser state, expected tokens, targeted hint; lexical errors; recovery continues to next statement; conflict report with items |
-| Code quality (2) | One module per stage, header comments, 35 tests, warning-free, sanitizer/valgrind clean |
+| Code quality (2) | One module per stage, header comments, 35 tests, warning-free, sanitizer-clean, leak-free |
 
 ## Error diagnostics
 

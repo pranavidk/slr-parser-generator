@@ -145,8 +145,9 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 
 ### Automated checks
 - **35 tests** (`make test`), grouped by module: Review 1 cases (7), grammar (4), LR(0) (3), FIRST/FOLLOW/table/conflicts (5), parser and recovery (8), SDT/TAC (6), plus 2 table-driven end-to-end tests covering 13 accepted and 7 rejected programs across all three grammars.
-- The build has **zero warnings** under `gcc` and `clang` with `-std=c99 -Wall -Wextra -pedantic`.
-- AddressSanitizer, UBSan and valgrind report **no memory errors and no leaks**.
+- The build has **zero warnings** under Apple clang 21 with `-std=c99 -Wall -Wextra -pedantic`, at both `-O0` and `-O2` (checked 7 Oct 2026).
+- AddressSanitizer and UBSan report **no memory errors** on the test suite and on `--all` runs of all three grammars. The macOS `leaks` tool reports **0 leaks** for the test suite and the demo runs (checked 7 Oct 2026).
+- Not yet checked: a real `gcc` build and valgrind. Both need Linux, WSL or MinGW (see §8).
 - The C output was cross-checked against the independent Python implementation on all demo inputs and is identical.
 
 ---
@@ -187,6 +188,7 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 - [ ] **Plagiarism report** for the document
 - [ ] **Final presentation slides**, updated from Review 1 with real outputs replacing the illustrative ones (e.g. the slide 7 table fragment shows illustrative state numbers; use the real table from `--table`)
 - [ ] Commit everything to the team repository, so commit history shows each member's work (Review 1 asked for version control as evidence of team coordination)
+- [ ] Build with real `gcc` (Linux/WSL, or `build.bat` under MinGW) and run `valgrind ./test_slr` to confirm the warning-free and leak-free claims there too
 - [ ] Optional extras if time allows: print the parse tree, add unary minus, export the table as CSV
 
 ---
