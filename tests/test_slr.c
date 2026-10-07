@@ -375,7 +375,7 @@ static void test_parser_deep_nesting_is_reported(void)
     char src[MAX_LINE];
     int i, n = 0;
     StatementResult *st;
-    n += sprintf(src + n, "x = ");
+    n += snprintf(src + n, sizeof src - (size_t)n, "x = ");
     for (i = 0; i < 600; i++) src[n++] = '(';   /* deeper than MAX_STACK */
     src[n++] = '1';
     src[n] = '\0';
