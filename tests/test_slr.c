@@ -5,6 +5,8 @@
  * with concrete identifiers/numbers in place of id / num.
  * Sections B-F cover each module individually. Section G runs whole
  * programs through every grammar and checks the exact TAC or diagnostic.
+ * Section H covers the final-review extras: parse tree, unary minus and
+ * CSV export of the table.
  *
  * Build & run from the project root:   make test
  */
@@ -523,6 +525,187 @@ static void test_e2e_rejected_programs(void)
 }
 
 /* ------------------------------------------------------------------ */
+/* H. Final-review extras: parse tree, unary minus, CSV export         */
+/* ------------------------------------------------------------------ */
+
+/* Read everything written to a temporary file back into buf */
+static void slurp(FILE *f, char *buf, size_t n)
+{
+    size_t got;
+    rewind(f);
+    got = fread(buf, 1, n - 1, f);
+    buf[got] = '\0';
+}
+
+/* Leaves of the tree, left to right, as "x = a + b" */
+static void tree_yield(const ParseTree *t, int id, char *buf, size_t n)
+{
+    const TreeNode *nd = &t->nodes[id];
+    int i;
+    if (nd->nkids == 0 && nd->lexeme[0]) {
+        str_append(buf, n, "%s%s", buf[0] ? " " : "", nd->lexeme);
+        return;
+    }
+    for (i = 0; i < nd->nkids; i++) tree_yield(t, nd->kids[i], buf, n);
+}
+
+static void test_tree_slide9_example_shape(void)
+{
+    SLRGen *g = load("assignment");
+    StatementResult *st = one(g, "x = a + b * c");
+    char leaves[256] = "";
+    CHECK(st && st->accepted);
+    CHECK(g->tree.root >= 0 && !g->tree.overflow);
+    if (g->tree.root >= 0) {
+        const TreeNode *root = &g->tree.nodes[g->tree.root];
+        CHECK(root->sym == g->g.start);
+        CHECK(root->nkids == 3);
+        tree_yield(&g->tree, g->tree.root, leaves, sizeof leaves);
+        CHECK(strcmp(leaves, "x = a + b * c") == 0);
+    }
+    CHECK(g->tree.n == 16);                    /* 7 leaves + 9 reductions */
+    gen_free(g);
+}
+
+static void test_tree_printed_layout(void)
+{
+    static const char *const expected =
+        "    S\n"
+        "    +-- id(a)\n"
+        "    +-- =\n"
+        "    `-- E\n"
+        "        `-- T\n"
+        "            `-- F\n"
+        "                `-- id(b)\n";
+    SLRGen *g = load("assignment");
+    FILE *f = tmpfile();
+    char buf[1024];
+    one(g, "a = b");
+    CHECK(f != NULL);
+    if (f) {
+        tree_print(&g->g, &g->tree, f);
+        slurp(f, buf, sizeof buf);
+        CHECK(strcmp(buf, expected) == 0);
+        fclose(f);
+    }
+    gen_free(g);
+}
+
+static void test_tree_epsilon_and_rejected(void)
+{
+    char err[256], buf[1024];
+    SLRGen *g = gen_from_text("S -> id = E\nE -> ( O ) | id\nO -> eps\n", err, sizeof err);
+    FILE *f = tmpfile();
+    StatementResult *st;
+    CHECK(g != NULL && f != NULL);
+    if (!g || !f) {
+        if (f) fclose(f);
+        gen_free(g);
+        return;
+    }
+    st = one(g, "x = ( )");
+    CHECK(st && st->accepted);
+    tree_print(&g->g, &g->tree, f);
+    slurp(f, buf, sizeof buf);
+    CHECK(strstr(buf, "+-- O\n") != NULL);
+    CHECK(strstr(buf, "`-- eps\n") != NULL);
+
+    st = one(g, "x = (");                      /* rejected: no tree */
+    CHECK(st && !st->accepted);
+    CHECK(g->tree.root == -1);
+    fclose(f);
+    gen_free(g);
+}
+
+static void test_unary_grammar_is_slr(void)
+{
+    SLRGen *g = load("unary");
+    CHECK(table_is_slr(&g->table));
+    CHECK(g->lr.nstates == 24);
+    gen_free(g);
+}
+
+static void test_unary_minus_tac(void)
+{
+    static const TacCase cases[] = {
+        {"unary", "x = -a",            {"t1 = minus a", "x = t1"}},
+        {"unary", "x = -a * b",        {"t1 = minus a", "t2 = t1 * b", "x = t2"}},
+        {"unary", "x = a - -b",        {"t1 = minus b", "t2 = a - t1", "x = t2"}},
+        {"unary", "x = -(a + b)",      {"t1 = a + b", "t2 = minus t1", "x = t2"}},
+        {"unary", "x = - - a",         {"t1 = minus a", "t2 = minus t1", "x = t2"}},
+        {"unary", "x = +a - 5",        {"t1 = a - 5", "x = t1"}},
+    };
+    size_t i;
+    for (i = 0; i < sizeof cases / sizeof cases[0]; i++) {
+        const TacCase *c = &cases[i];
+        SLRGen *g = load(c->grammar);
+        StatementResult *st = one(g, c->src);
+        int n = 0;
+        while (n < 6 && c->tac[n]) n++;
+        if (!(st && st->accepted && tac_equals(g, c->tac, n)))
+            printf("    case: %s  [%s]\n", c->src, c->grammar);
+        CHECK(st && st->accepted);
+        CHECK(tac_equals(g, c->tac, n));
+        gen_free(g);
+    }
+}
+
+static void test_unary_minus_errors(void)
+{
+    SLRGen *g = load("unary");
+    StatementResult *st = one(g, "x = a * -");
+    CHECK(st && !st->accepted && st->ndiags == 1);
+    if (st && st->ndiags == 1) {
+        CHECK(strstr(st->diags[0].message, "end of input") != NULL);
+        CHECK(strstr(st->diags[0].hint, "operand is missing") != NULL);
+    }
+    CHECK(g->tac.nquads == 0);
+    gen_free(g);
+
+    g = load("assignment");                    /* project grammar is unchanged */
+    st = one(g, "x = -a");
+    CHECK(st && !st->accepted && st->diags[0].kind == DIAG_LEXICAL);
+    gen_free(g);
+}
+
+static void test_csv_matches_table(void)
+{
+    SLRGen *g = load("assignment");
+    FILE *f = tmpfile();
+    char buf[4096];
+    int lines = 0;
+    const char *p;
+    CHECK(f != NULL);
+    if (f) {
+        table_write_csv(&g->table, f);
+        slurp(f, buf, sizeof buf);
+        for (p = buf; *p; p++) lines += *p == '\n';
+        CHECK(lines == 17);                     /* header + 16 states */
+        CHECK(strncmp(buf, "State,id,=,+,*,(,),num,$,S,E,T,F\r\n", 34) == 0);
+        CHECK(strstr(buf, "\r\n0,s2,,,,,,,,1,,,\r\n") != NULL);
+        CHECK(strstr(buf, "\r\n1,,,,,,,,acc,,,,\r\n") != NULL);
+        CHECK(strstr(buf, "\r\n5,,,r3,s11,,r3,,r3,,,,\r\n") != NULL);
+        fclose(f);
+    }
+    gen_free(g);
+}
+
+static void test_csv_quotes_special_symbols(void)
+{
+    char err[256], buf[1024];
+    SLRGen *g = gen_from_text("S -> id = L\nL -> L , id | id\n", err, sizeof err);
+    FILE *f = tmpfile();
+    CHECK(g != NULL && f != NULL);
+    if (g && f) {
+        table_write_csv(&g->table, f);
+        slurp(f, buf, sizeof buf);
+        CHECK(strstr(buf, ",\",\",") != NULL);   /* the ',' terminal is quoted */
+    }
+    if (f) fclose(f);
+    gen_free(g);
+}
+
+/* ------------------------------------------------------------------ */
 int main(void)
 {
     printf("A. Review 1 test plan (slide 10)\n");
@@ -573,6 +756,16 @@ int main(void)
     printf("\nG. End-to-end cases\n");
     RUN(test_e2e_accepted_programs);
     RUN(test_e2e_rejected_programs);
+
+    printf("\nH. Final review - parse tree, unary minus, CSV export\n");
+    RUN(test_tree_slide9_example_shape);
+    RUN(test_tree_printed_layout);
+    RUN(test_tree_epsilon_and_rejected);
+    RUN(test_unary_grammar_is_slr);
+    RUN(test_unary_minus_tac);
+    RUN(test_unary_minus_errors);
+    RUN(test_csv_matches_table);
+    RUN(test_csv_quotes_special_symbols);
 
     printf("\n%d tests, %d passed, %d failed\n", tests_run, tests_run - tests_failed, tests_failed);
     return tests_failed ? 1 : 0;

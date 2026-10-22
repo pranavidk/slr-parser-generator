@@ -49,6 +49,11 @@ reasons behind each decision.
 - The C output was checked against the Python version on every demo input and all results are identical: states, FIRST/FOLLOW, every table cell, every trace step, TAC, conflicts and every error message. The only differences are layout (a labelled ACTION/GOTO header row, and the ACCEPTED status printed after the trace).
 - **The C version is the one to submit and present.** The Python version is only a reference.
 
+### Final review additions (22 Oct 2026)
+- The three optional extras from §8 are done: **parse tree printing** (`--tree`), **unary minus and plus** (`grammars/unary.grammar`, `t1 = minus a`), and **CSV export** of the ACTION/GOTO table (`--csv FILE`).
+- The project grammar and the default output are unchanged; only `--all` gains the parse tree. Every figure in the Review 2 slides and the report (16 states, the table, the TAC, the error messages) still holds.
+- 8 new tests (section H), so the suite is now **43 tests**.
+
 ---
 
 ## 3. Language & grammar
@@ -98,7 +103,7 @@ source text ──► Lexer ──► shift-reduce driver + value stack ──�
 | 3 | Nitin (24BCE2819) | `first_follow.c/.h`, `slr_table.c/.h` | FIRST/FOLLOW as 64-bit bitsets with ε support. The ACTION/GOTO table uses the slide 7 rules. Shift/reduce and reduce/reduce conflicts are recorded with the state, terminal and items involved. |
 | 4 | Shafin (24BCE2860) | `parser.c/.h`, `pipeline.c/.h` | The table-driven driver with parallel state and value stacks, the step-by-step trace, diagnostics, and statement-level error recovery. |
 | 5 | Pranav (24BCE2773) | `sdt.c/.h` | The `place` attribute, `newTemp()`, the semantic actions from slide 9, and TAC plus quadruples. |
-| all | Whole team | `main.c`, `tests/test_slr.c` | The command-line driver and the 35-test verification suite. |
+| all | Whole team | `main.c`, `tests/test_slr.c` | The command-line driver and the 43-test verification suite. |
 
 The Review 1 slides do not list module owners. The assignment above was recorded on 7 Oct 2026.
 
@@ -145,10 +150,10 @@ The Review 1 slides do not list module owners. The assignment above was recorded
 The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = t2`, which matches the slide.
 
 ### Automated checks
-- **35 tests** (`make test`), grouped by module: Review 1 cases (7), grammar (4), LR(0) (3), FIRST/FOLLOW/table/conflicts (5), parser and recovery (8), SDT/TAC (6), plus 2 table-driven end-to-end tests covering 13 accepted and 7 rejected programs across all three grammars.
+- **43 tests** (`make test`), grouped by module: Review 1 cases (7), grammar (4), LR(0) (3), FIRST/FOLLOW/table/conflicts (5), parser and recovery (8), SDT/TAC (6), 2 table-driven end-to-end tests covering 13 accepted and 7 rejected programs across three grammars, and section H (8) for the parse tree, unary minus and CSV export. (Review 2 had 35; sections A-G are unchanged.)
 - The build has **zero warnings** under Apple clang 21 with `-std=c99 -Wall -Wextra -pedantic`, at both `-O0` and `-O2` (checked 7 Oct 2026).
 - AddressSanitizer and UBSan report **no memory errors** on the test suite and on `--all` runs of all three grammars. The macOS `leaks` tool reports **0 leaks** for the test suite and the demo runs (checked 7 Oct 2026).
-- Not yet checked: a real `gcc` build and valgrind. Both need Linux, WSL or MinGW (see §8).
+- On Linux (22 Oct 2026): **0 warnings** with gcc 13.3 and clang 18 at `-O0` and `-O2`; ASan + UBSan clean on the tests, `--all` runs of all four grammars, the program file with `--tree --trace`, and stress inputs (240 nested parentheses, a 600-token statement); **valgrind: 0 errors, 0 leaks** on the test suite and the demo runs.
 - The C output was cross-checked against the independent Python implementation on all demo inputs and is identical.
 
 ---
@@ -163,6 +168,7 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 | Error handling & diagnostics (3) | `./slr --file examples/program.txt` | 4 different errors in one run, carets, hints, recovery continues |
 | | `./slr -g grammars/ambiguous.grammar` | Conflict report naming states, terminals and items |
 | Code quality (2) | Show `include/` headers and the module table | One file per stage, documented headers, test suite, warning-free build |
+| Final review extras | `./slr "x = (a + b) * c" --tree` · `./slr -g grammars/unary.grammar "x = -a * b"` · `./slr --csv table.csv` | Parse tree, unary minus in TAC, table opened in a spreadsheet |
 
 ---
 
@@ -171,7 +177,8 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 - An SLR parser can perform a few extra reductions before it detects an error, because FOLLOW sets are coarser than exact lookaheads. It never shifts a bad token, so the reported error position is always exact.
 - Recovery is per statement. Within one statement, only the first syntax error is reported.
 - For a grammar that is not SLR(1), the shift-wins resolution produces a usable table but not necessarily the intended meaning. With `ambiguous.grammar`, `x = a * b + c` translates as `a * (b + c)` (`t1 = b + c`, `t2 = a * t1`), because every operator binds tighter than the ones before it. The conflict report is the warning. The fix is to layer the grammar, as `assignment.grammar` does.
-- Semantic actions cover the shapes our language uses (copy, assignment, parentheses, binary operators). A grammar with other shapes, such as unary minus or function calls, gets a clear "no semantic action defined" error and would need a new rule in `sdt.c`.
+- Semantic actions cover the shapes our languages use (copy, assignment, parentheses, binary operators, unary `-` and `+`). A grammar with other shapes, such as function calls, gets a clear "no semantic action defined" error and would need a new rule in `sdt.c`.
+- The parse tree holds up to 4096 nodes per statement; a larger statement still parses and translates, and the tree is skipped with a note.
 - There is no type checking or symbol table. That is outside this project's scope (it is Team 11's title).
 
 ---
@@ -190,8 +197,8 @@ The slide 9 example `x = a + b * c` gives `t1 = b * c` · `t2 = a + t1` · `x = 
 - [ ] **Final presentation slides**, updated from Review 1 with real outputs replacing the illustrative ones (e.g. the slide 7 table fragment shows illustrative state numbers; use the real table from `--table`)
 - [x] Push to GitHub: <https://github.com/pranavidk/slr-parser-generator> (public, 7 Oct 2026)
 - [ ] Add each teammate as a collaborator so they can commit their own part (Review 1 asked for version control as evidence of team coordination)
-- [ ] Build with real `gcc` (Linux/WSL, or `build.bat` under MinGW) and run `valgrind ./test_slr` to confirm the warning-free and leak-free claims there too
-- [ ] Optional extras if time allows: print the parse tree, add unary minus, export the table as CSV
+- [x] Build with real `gcc` on Linux and run valgrind: 0 warnings, 0 errors, 0 leaks (22 Oct 2026)
+- [x] Optional extras: print the parse tree, add unary minus, export the table as CSV (22 Oct 2026)
 
 ---
 
@@ -206,7 +213,7 @@ slr_c/
 ├── build.bat            Windows build
 ├── include/             one header per module (documented)
 ├── src/                 grammar, lexer, lr0, first_follow, slr_table, parser, sdt, pipeline, main
-├── tests/test_slr.c     35-test verification suite (sections A-G)
-├── grammars/            assignment (project), extended, ambiguous
+├── tests/test_slr.c     43-test verification suite (sections A-H)
+├── grammars/            assignment (project), extended, ambiguous, unary
 └── examples/program.txt multi-statement demo with deliberate errors
 ```

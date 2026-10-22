@@ -6,6 +6,9 @@
  *   slr --file examples/program.txt
  *   slr --all "y = (a + b) * c"
  *   slr --grammar grammars/ambiguous.grammar --table
+ *   slr "x = (a + b) * c" --tree
+ *   slr --csv table.csv
+ *   slr -g grammars/unary.grammar "x = -a * (b - -c)"
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +38,9 @@ static void usage(const char *prog)
            "      --table          print the ACTION/GOTO table\n"
            "      --trace          print the shift-reduce trace\n"
            "      --quads          print quadruples as well as TAC\n"
-           "      --all            print every stage\n"
+           "      --tree           print the parse tree of each accepted statement\n"
+           "      --csv FILE       write the ACTION/GOTO table to FILE as CSV\n"
+           "      --all            print every stage (not --csv)\n"
            "  -h, --help           show this help\n",
            prog, DEFAULT_GRAMMAR);
 }
@@ -49,9 +54,9 @@ static const char *base_name(const char *path)
 
 int main(int argc, char **argv)
 {
-    const char *grammar_path = DEFAULT_GRAMMAR, *file = NULL, *inline_src = NULL;
+    const char *grammar_path = DEFAULT_GRAMMAR, *file = NULL, *inline_src = NULL, *csv_path = NULL;
     int show_grammar = 0, show_states = 0, show_sets = 0, show_table = 0;
-    int show_trace = 0, show_quads = 0, all = 0;
+    int show_trace = 0, show_quads = 0, show_tree = 0, all = 0;
     char err[512], line_buf[MAX_LINE], qbuf[256];
     char *source = NULL;
     SLRGen *gen;
@@ -64,6 +69,8 @@ int main(int argc, char **argv)
         if (!strcmp(a, "-h") || !strcmp(a, "--help")) { usage(argv[0]); return 0; }
         else if ((!strcmp(a, "-g") || !strcmp(a, "--grammar")) && i + 1 < argc) grammar_path = argv[++i];
         else if ((!strcmp(a, "-f") || !strcmp(a, "--file")) && i + 1 < argc) file = argv[++i];
+        else if (!strcmp(a, "--csv") && i + 1 < argc) csv_path = argv[++i];
+        else if (!strcmp(a, "--tree")) show_tree = 1;
         else if (!strcmp(a, "--grammar-info")) show_grammar = 1;
         else if (!strcmp(a, "--states")) show_states = 1;
         else if (!strcmp(a, "--sets")) show_sets = 1;
@@ -80,7 +87,7 @@ int main(int argc, char **argv)
             return 2;
         }
     }
-    if (all) show_grammar = show_states = show_sets = show_table = show_trace = show_quads = 1;
+    if (all) show_grammar = show_states = show_sets = show_table = show_trace = show_quads = show_tree = 1;
 
     gen = gen_from_file(grammar_path, err, sizeof err);
     if (!gen) {
@@ -99,6 +106,21 @@ int main(int argc, char **argv)
     if (show_table || !table_is_slr(&gen->table)) {
         printf("\n");
         table_print_conflicts(&gen->table, stdout);
+    }
+    if (csv_path) {
+        FILE *csv = fopen(csv_path, "wb");
+        if (!csv) {
+            fprintf(stderr, "Cannot write CSV file '%s'.\n", csv_path);
+            gen_free(gen);
+            return 2;
+        }
+        table_write_csv(&gen->table, csv);
+        if (fclose(csv) != 0) {
+            fprintf(stderr, "Error while writing CSV file '%s'.\n", csv_path);
+            gen_free(gen);
+            return 2;
+        }
+        printf("\nACTION/GOTO table written to %s (%d states).\n", csv_path, gen->lr.nstates);
     }
 
     if (file) {
@@ -144,6 +166,10 @@ int main(int argc, char **argv)
         for (k = res->quad_start; k < res->quad_end; k++) {
             quad_str(&gen->tac.quads[k], qbuf, sizeof qbuf);
             printf("    %s\n", qbuf);
+        }
+        if (show_tree && res->accepted) {
+            printf("  parse tree:\n");
+            tree_print(&gen->g, &gen->tree, stdout);
         }
         for (k = 0; k < res->ndiags; k++) {
             const Diagnostic *d = &res->diags[k];

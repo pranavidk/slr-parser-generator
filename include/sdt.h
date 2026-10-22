@@ -13,10 +13,15 @@
  *   T -> F        : T.place = F.place
  *   F -> ( E )    : F.place = E.place
  *   F -> id | num : F.place = lexeme
+ *   F -> - F1     : t = newTemp(); emit(t = minus F1.place); F.place = t
+ *   F -> + F1     : F.place = F1.place
+ *
+ * (The unary rules are used by grammars/unary.grammar; the project grammar
+ *  has no unary operators.)
  *
  * Actions are chosen by the SHAPE of the production rather than its number,
  * so the translator keeps working if the grammar file is reordered or
- * extended with -, / or more precedence levels.
+ * extended with -, /, unary minus or more precedence levels.
  *
  * Output is kept as quadruples (op, arg1, arg2, result) and printed as TAC.
  */

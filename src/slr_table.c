@@ -161,6 +161,49 @@ void table_print(const SLRTable *t, FILE *out)
     }
 }
 
+static void csv_field(FILE *out, const char *s, int first)
+{
+    if (!first) fputc(',', out);
+    if (strpbrk(s, ",\"\r\n")) {
+        fputc('"', out);
+        for (; *s; s++) {
+            if (*s == '"') fputc('"', out);
+            fputc(*s, out);
+        }
+        fputc('"', out);
+    } else {
+        fputs(s, out);
+    }
+}
+
+void table_write_csv(const SLRTable *t, FILE *out)
+{
+    const Grammar *g = t->g;
+    char buf[32];
+    int i, j;
+
+    csv_field(out, "State", 1);
+    for (j = 0; j < g->nterms; j++) csv_field(out, g->names[g->terms[j]], 0);
+    for (j = 1; j < g->nnonterms; j++) csv_field(out, g->names[g->nonterms[j]], 0);
+    fputs("\r\n", out);
+
+    for (i = 0; i < t->lr->nstates; i++) {
+        snprintf(buf, sizeof buf, "%d", i);
+        csv_field(out, buf, 1);
+        for (j = 0; j < g->nterms; j++) {
+            action_str(t->action[i][g->terms[j]], buf, sizeof buf);
+            csv_field(out, buf, 0);
+        }
+        for (j = 1; j < g->nnonterms; j++) {
+            int gt = t->go[i][g->nonterms[j]];
+            if (gt >= 0) snprintf(buf, sizeof buf, "%d", gt);
+            else buf[0] = '\0';
+            csv_field(out, buf, 0);
+        }
+        fputs("\r\n", out);
+    }
+}
+
 /* Is this item responsible for an action on `term`? */
 static int item_involved(const SLRTable *t, Item it, int term)
 {

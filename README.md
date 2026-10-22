@@ -19,7 +19,7 @@ and UBSan, and no memory leaks.
 Linux / macOS / WSL / MSYS2:
 ```bash
 make            # builds ./slr
-make test       # builds and runs the 35-test suite
+make test       # builds and runs the 43-test suite
 make demo       # runs the demo commands
 ```
 
@@ -44,9 +44,23 @@ Run from the project folder (the default grammar path is `grammars/assignment.gr
 ./slr --file examples/program.txt           # multi-statement program with errors (shows recovery)
 ./slr -g grammars/ambiguous.grammar         # conflict detection demo
 ./slr -g grammars/extended.grammar "r = a - b / c"   # different grammar, same code
+./slr "x = (a + b) * c" --tree              # parse tree of each accepted statement
+./slr -g grammars/unary.grammar "x = -a * (b - -c)"  # unary minus -> t1 = minus a
+./slr --csv table.csv                       # ACTION/GOTO table as CSV (opens in Excel)
 ```
 
-Exit code: 0 = all OK, 1 = errors/conflicts reported, 2 = could not load input.
+`--all` prints every stage, including the parse tree; it does not write a CSV.
+
+Exit code: 0 = all OK, 1 = errors/conflicts reported, 2 = could not load input or write the CSV.
+
+### Grammars included
+
+| File | What it shows |
+|---|---|
+| `grammars/assignment.grammar` | The project grammar (default): 9 productions, 16 states, SLR(1) |
+| `grammars/extended.grammar` | Adds `-` and `/`: 20 states, SLR(1), no code change |
+| `grammars/ambiguous.grammar` | No precedence layering: 4 shift/reduce conflicts, not SLR(1) |
+| `grammars/unary.grammar` | Extended grammar plus unary `-` and `+`: 24 states, SLR(1) |
 
 ## Pipeline
 
@@ -96,7 +110,36 @@ Limits are `#define`s at the top of each header (e.g. `MAX_STATES 256`,
 | Core algorithm completeness & correctness (6) | `./slr --all ...`: every stage from grammar to TAC; works on any grammar file |
 | Verified against Review 1 test cases (4) | `make test` → section A, cases 1–7 from slide 10 |
 | Error handling & diagnostics (3) | Line/col + caret, parser state, expected tokens, targeted hint; lexical errors; recovery continues to next statement; conflict report with items |
-| Code quality (2) | One module per stage, header comments, 35 tests, warning-free, sanitizer-clean, leak-free |
+| Code quality (2) | One module per stage, header comments, 43 tests, warning-free, sanitizer-clean, leak-free |
+
+## Final review additions (22 Oct 2026)
+
+| Feature | Flag / file | Where in the code |
+|---|---|---|
+| Parse tree | `--tree` (also part of `--all`) | `parser.c`: a leaf per shift, an interior node per reduce; `tree_print()` |
+| Unary minus and plus | `grammars/unary.grammar` | `sdt.c`: `A -> - B` emits `t = minus B.place`; `A -> + B` copies |
+| CSV export of the table | `--csv FILE` | `slr_table.c`: `table_write_csv()`, RFC 4180 quoting |
+
+The project grammar and the default output are unchanged, so every number in
+the Review 2 slides and the report still holds.
+
+```
+$ ./slr "a = b" --tree
+[line 1] a = b  ->  ACCEPTED
+    a = b
+  parse tree:
+    S
+    +-- id(a)
+    +-- =
+    `-- E
+        `-- T
+            `-- F
+                `-- id(b)
+```
+
+CSV layout: a header row (`State`, the terminals, then the nonterminals), one
+row per state; terminal columns are ACTION entries (`s3`, `r5`, `acc`),
+nonterminal columns are GOTO states.
 
 ## Error diagnostics
 

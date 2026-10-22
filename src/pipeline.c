@@ -121,6 +121,9 @@ void gen_compile_statement(SLRGen *gen, const Statement *st, FILE *trace, Statem
     res->line = st->line;
     trimmed_copy(res->source, sizeof res->source, st->text);
     res->quad_start = res->quad_end = gen->tac.nquads;
+    gen->tree.n = 0;
+    gen->tree.root = -1;
+    gen->tree.overflow = 0;
 
     ntok = lexer_tokenize(&gen->lexer, st->text, st->line, st->col_offset, toks, MAX_TOKENS,
                           errs, MAX_STMT_DIAGS, &nerrs);
@@ -140,7 +143,7 @@ void gen_compile_statement(SLRGen *gen, const Statement *st, FILE *trace, Statem
     mark = gen->tac.nquads;
     temps = gen->tac.temp_count;
     res->parsed = 1;
-    slr_parse(&gen->table, &gen->tac, toks, ntok, trace, &res->parse);
+    slr_parse(&gen->table, &gen->tac, toks, ntok, trace, &gen->tree, &res->parse);
     if (res->parse.accepted) {
         res->accepted = 1;
         res->quad_end = gen->tac.nquads;

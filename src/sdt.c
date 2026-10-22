@@ -60,6 +60,17 @@ int tac_on_reduce(TACGen *tg, const Grammar *g, int prod,
         copy_place(out, children[0]);
         return 0;
     }
+    if (p->len == 2 && strcmp(b0, "-") == 0) {               /* A -> - B (unary minus) */
+        char t[MAX_PLACE];
+        new_temp(tg, t);
+        if (emit(tg, "minus", children[1], "", t) < 0) goto full;
+        copy_place(out, t);
+        return 0;
+    }
+    if (p->len == 2 && strcmp(b0, "+") == 0) {               /* A -> + B (unary plus) */
+        copy_place(out, children[1]);
+        return 0;
+    }
     if (p->len == 3 && is_one_of(b1, assign_ops)) {          /* S -> id = E */
         if (emit(tg, "=", children[2], "", children[0]) < 0) goto full;
         copy_place(out, children[0]);
@@ -89,15 +100,18 @@ full:
 void quad_str(const Quad *q, char *buf, size_t n)
 {
     if (strcmp(q->op, "=") == 0) snprintf(buf, n, "%s = %s", q->result, q->arg1);
+    else if (strcmp(q->op, "minus") == 0) snprintf(buf, n, "%s = minus %s", q->result, q->arg1);
     else snprintf(buf, n, "%s = %s %s %s", q->result, q->arg1, q->op, q->arg2);
 }
 
 void tac_print_quads(const TACGen *tg, FILE *out)
 {
-    int i;
-    fprintf(out, "%-4s%-5s%-8s%-8s%s\n", "#", "op", "arg1", "arg2", "result");
+    int i, w = 5;                       /* op column: 5 wide, more for "minus" */
+    for (i = 0; i < tg->nquads; i++)
+        if ((int)strlen(tg->quads[i].op) + 2 > w) w = (int)strlen(tg->quads[i].op) + 2;
+    fprintf(out, "%-4s%-*s%-8s%-8s%s\n", "#", w, "op", "arg1", "arg2", "result");
     for (i = 0; i < tg->nquads; i++) {
         const Quad *q = &tg->quads[i];
-        fprintf(out, "%-4d%-5s%-8s%-8s%s\n", i, q->op, q->arg1, q->arg2, q->result);
+        fprintf(out, "%-4d%-*s%-8s%-8s%s\n", i, w, q->op, q->arg1, q->arg2, q->result);
     }
 }

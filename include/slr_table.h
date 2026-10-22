@@ -58,4 +58,9 @@ void action_str(Action a, char *buf, size_t n);
 void table_print(const SLRTable *t, FILE *out);
 void table_print_conflicts(const SLRTable *t, FILE *out);
 
+/* ACTION/GOTO table as CSV (RFC 4180): header row "State", the terminals
+ * (ACTION columns) then the nonterminals (GOTO columns); one row per state;
+ * cells are s<n>, r<n>, acc, a GOTO state number, or empty. */
+void table_write_csv(const SLRTable *t, FILE *out);
+
 #endif

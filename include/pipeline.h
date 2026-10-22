@@ -30,6 +30,7 @@ typedef struct {
     Sets     sets;
     SLRTable table;
     TACGen   tac;
+    ParseTree tree;            /* parse tree of the last statement compiled */
 } SLRGen;
 
 SLRGen *gen_from_text(const char *grammar_text, char *err, size_t errlen);

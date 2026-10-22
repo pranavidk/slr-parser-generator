@@ -1,0 +1,7 @@
+# Unary grammar — the extended grammar plus unary minus and plus.
+# Unary operators sit at the F level, so they bind tighter than * and /
+# (-a * b means (-a) * b), and they nest (- - a).
+S -> id = E
+E -> E + T | E - T | T
+T -> T * F | T / F | F
+F -> - F | + F | ( E ) | id | num

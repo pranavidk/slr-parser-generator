@@ -34,8 +34,66 @@ typedef struct {
     int syms[MAX_STACK];          /* grammar symbol under each state (index 0 unused) */
     int tok[MAX_STACK];           /* token index for terminals, -1 for nonterminals */
     char values[MAX_STACK][MAX_PLACE];
+    int node[MAX_STACK];          /* parse-tree node under each state (-1 = none) */
     int sp;                       /* index of top */
 } Stack;
+
+/* ------------------------------------------------------------------ */
+/* Parse tree                                                          */
+/* ------------------------------------------------------------------ */
+static int tree_new(ParseTree *t, int sym, const char *lexeme)
+{
+    TreeNode *nd;
+    if (!t || t->overflow) return -1;
+    if (t->n >= MAX_TREE_NODES) {
+        t->overflow = 1;
+        return -1;
+    }
+    nd = &t->nodes[t->n];
+    nd->sym = sym;
+    snprintf(nd->lexeme, sizeof nd->lexeme, "%s", lexeme ? lexeme : "");
+    nd->nkids = 0;
+    return t->n++;
+}
+
+static void print_node(const Grammar *g, const ParseTree *t, int id, char *prefix, size_t cap,
+                       int is_root, int last, FILE *out)
+{
+    const TreeNode *nd = &t->nodes[id];
+    const char *name = g->names[nd->sym];
+    size_t len = strlen(prefix);
+    int i;
+
+    fprintf(out, "%s%s", prefix, is_root ? "" : (last ? "`-- " : "+-- "));
+    if (nd->lexeme[0] && strcmp(nd->lexeme, name) != 0) fprintf(out, "%s(%s)\n", name, nd->lexeme);
+    else fprintf(out, "%s\n", name);
+
+    if (!is_root) {
+        if (len + 5 >= cap) {                     /* too deep to indent further */
+            if (nd->nkids > 0) fprintf(out, "%s    ...\n", prefix);
+            return;
+        }
+        memcpy(prefix + len, last ? "    " : "|   ", 5);
+    }
+    if (nd->nkids == 0 && !g->is_terminal[nd->sym]) fprintf(out, "%s`-- eps\n", prefix);
+    for (i = 0; i < nd->nkids; i++)
+        print_node(g, t, nd->kids[i], prefix, cap, 0, i == nd->nkids - 1, out);
+    prefix[len] = '\0';
+}
+
+void tree_print(const Grammar *g, const ParseTree *tree, FILE *out)
+{
+    char prefix[2048] = "    ";
+    if (tree->overflow) {
+        fprintf(out, "    (parse tree not shown: more than %d nodes)\n", MAX_TREE_NODES);
+        return;
+    }
+    if (tree->root < 0) {
+        fprintf(out, "    (no parse tree: statement was not accepted)\n");
+        return;
+    }
+    print_node(g, tree, tree->root, prefix, sizeof prefix, 1, 1, out);
+}
 
 static void trace_row(FILE *out, const Grammar *g, const Stack *s, const Token *toks,
                       int ntok, int pos, int step, const char *action)
@@ -111,7 +169,7 @@ static void fail(ParseResult *r, DiagKind kind, const Token *tok, const char *ms
 /* Driver                                                              */
 /* ------------------------------------------------------------------ */
 int slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
-              FILE *trace, ParseResult *r)
+              FILE *trace, ParseTree *tree, ParseResult *r)
 {
     static Stack s;               /* ~40 KB: kept off the call stack */
     const Grammar *g = t->g;
@@ -121,6 +179,12 @@ int slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
     memset(r, 0, sizeof *r);
     s.sp = 0;
     s.states[0] = 0;
+    s.node[0] = -1;
+    if (tree) {
+        tree->n = 0;
+        tree->root = -1;
+        tree->overflow = 0;
+    }
     if (trace)
         fprintf(trace, "%-5s %-24s %-24s %-34s %s\n", "Step", "Stack (states)", "Symbols",
                 "Input", "Action");
@@ -159,6 +223,7 @@ int slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
             s.syms[s.sp] = tok->kind;
             s.tok[s.sp] = pos;
             snprintf(s.values[s.sp], MAX_PLACE, "%s", tok->lexeme);
+            s.node[s.sp] = tree_new(tree, tok->kind, tok->lexeme);
             pos++;
             break;
 
@@ -166,6 +231,7 @@ int slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
             const Production *p = &g->prods[a.target];
             char res[MAX_PLACE];
             int base = s.sp - p->len + 1;          /* first RHS entry */
+            int node, k;
             production_str(g, a.target, pbuf, sizeof pbuf);
             snprintf(desc, sizeof desc, "reduce %s", pbuf);
             trace_row(trace, g, &s, toks, ntok, pos, r->nsteps, desc);
@@ -177,8 +243,14 @@ int slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
                 fail(r, DIAG_SEMANTIC, tok, err);
                 return 0;
             }
+            node = tree_new(tree, p->head, NULL);
+            if (node >= 0) {
+                for (k = 0; k < p->len; k++) tree->nodes[node].kids[k] = s.node[base + k];
+                tree->nodes[node].nkids = p->len;
+            }
             s.sp -= p->len;
             s.sp++;
+            s.node[s.sp] = node;
             s.states[s.sp] = t->go[s.states[s.sp - 1]][p->head];
             s.syms[s.sp] = p->head;
             s.tok[s.sp] = -1;
@@ -189,6 +261,7 @@ int slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
         case ACT_ACCEPT:
             trace_row(trace, g, &s, toks, ntok, pos, r->nsteps, "ACCEPT");
             r->accepted = 1;
+            if (tree && !tree->overflow) tree->root = s.node[s.sp];
             snprintf(r->value, sizeof r->value, "%s", s.values[s.sp]);
             snprintf(r->last_action, sizeof r->last_action, "ACCEPT");
             return 1;

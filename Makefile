@@ -28,8 +28,11 @@ demo: slr
 	-./slr --file examples/program.txt
 	-./slr -g grammars/ambiguous.grammar
 	./slr -g grammars/extended.grammar "r = a - b / c - d"
+	./slr "x = (a + b) * c" --tree
+	./slr -g grammars/unary.grammar "x = -a * (b - -c)" --quads
+	./slr --csv slr_table.csv
 
 clean:
-	rm -f slr test_slr slr.exe test_slr.exe
+	rm -f slr test_slr slr.exe test_slr.exe slr_table.csv
 
 .PHONY: all test demo clean

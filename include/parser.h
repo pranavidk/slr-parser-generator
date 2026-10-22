@@ -17,6 +17,11 @@
  * token, expected terminals (non-empty ACTION entries for that state) and a
  * targeted recovery hint.
  *
+ * Parse tree: every shift creates a leaf for the token and every reduce
+ * creates an interior node for the production head whose children are the
+ * nodes popped off the stack, so on ACCEPT the node under the start symbol
+ * is the root of the full parse tree (printed with --tree).
+ *
  * Note: SLR may perform a few reductions before detecting an error (FOLLOW
  * sets are coarser than exact lookaheads), but it never SHIFTS a bad token,
  * so the reported position is always exact.
@@ -28,7 +33,22 @@
 #include "sdt.h"
 #include "slr_table.h"
 
-#define MAX_STACK 512
+#define MAX_STACK      512
+#define MAX_TREE_NODES 4096
+
+typedef struct {
+    int  sym;                      /* grammar symbol id                      */
+    char lexeme[MAX_LEXEME];       /* token text for leaves, "" for interior */
+    int  kids[MAX_RHS];            /* child node indices, left to right      */
+    int  nkids;
+} TreeNode;
+
+typedef struct {
+    TreeNode nodes[MAX_TREE_NODES];
+    int  n;
+    int  root;                     /* -1 unless the statement was accepted   */
+    int  overflow;                 /* 1 if the tree did not fit (parse still runs) */
+} ParseTree;
 
 typedef enum { DIAG_LEXICAL, DIAG_SYNTAX, DIAG_SEMANTIC } DiagKind;
 
@@ -50,9 +70,12 @@ typedef struct {
     Diagnostic diag;               /* valid when !accepted */
 } ParseResult;
 
-/* trace may be NULL. Returns 1 if accepted. */
+/* trace and tree may be NULL. Returns 1 if accepted. */
 int  slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
-               FILE *trace, ParseResult *res);
+               FILE *trace, ParseTree *tree, ParseResult *res);
+
+/* Indented parse tree of an accepted statement. */
+void tree_print(const Grammar *g, const ParseTree *tree, FILE *out);
 
 /* source_line may be NULL (then no caret is drawn). */
 void diag_print(const Grammar *g, const Diagnostic *d, const char *source_line, FILE *out);
