@@ -1,5 +1,19 @@
 /*
  * Pipeline (Owner: Member 4 - Shafin, 24BCE2860, shared)
+ *
+ *   gen_from_text/file()   load the grammar, then build the LR(0)
+ *                          collection, FIRST/FOLLOW sets, SLR table and
+ *                          lexer, and reset the TAC buffer
+ *   gen_split()            cut source text into statements at newlines, and
+ *                          at ';' unless the grammar uses ';' as a terminal;
+ *                          each statement keeps its line and column offset
+ *   gen_compile_statement  lex, then parse + translate one statement. If
+ *                          lexing reports errors the statement is not
+ *                          parsed. If parsing fails, the TAC buffer and temp
+ *                          counter are rolled back to where the statement
+ *                          started (panic-mode recovery).
+ *   gen_compile()          run every statement and total the accepted
+ *                          statements and errors
  */
 #include "pipeline.h"
 

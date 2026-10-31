@@ -1,5 +1,23 @@
 /*
  * Module 4 - Shift-reduce driver, trace & diagnostics (Owner: Member 4 - Shafin, 24BCE2860)
+ *
+ * slr_parse() keeps one Stack whose entries hold the LR state, grammar
+ * symbol, token index, semantic value and parse-tree node together, so they
+ * are always pushed and popped as one unit:
+ *
+ *   shift   push the token (its lexeme is the value) and a leaf node
+ *   reduce  call tac_on_reduce() on the |rhs| values on top, pop them, and
+ *           push GOTO[top, A] with the result and a new interior node
+ *   accept  the top value is the statement's result; its node is the root
+ *   error   fill the Diagnostic: state, expected terminals (from
+ *           table_expected) and a hint from make_hint()
+ *
+ * make_hint() looks at the offending token and the expected set to tell
+ * apart: end of input with an open '(', a missing operand, an unmatched
+ * ')', a doubled operator and two operands in a row.
+ * A stack overflow or a failed semantic action is reported as a semantic
+ * error. The Stack is static (too big for the call stack), so slr_parse()
+ * is not reentrant.
  */
 #include "parser.h"
 

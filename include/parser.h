@@ -70,14 +70,21 @@ typedef struct {
     Diagnostic diag;               /* valid when !accepted */
 } ParseResult;
 
-/* trace and tree may be NULL. Returns 1 if accepted. */
+/* Parse one statement's tokens (ending with '$') using t's ACTION/GOTO
+ * table, sending each reduction to tac for code generation. Writes a trace
+ * row per step to `trace` and builds the parse tree into `tree`. Fills
+ * *res, including res->diag on error.
+ * trace and tree may be NULL. Returns 1 if accepted. */
 int  slr_parse(const SLRTable *t, TACGen *tac, const Token *toks, int ntok,
                FILE *trace, ParseTree *tree, ParseResult *res);
 
 /* Indented parse tree of an accepted statement. */
 void tree_print(const Grammar *g, const ParseTree *tree, FILE *out);
 
-/* source_line may be NULL (then no caret is drawn). */
+/* Print a diagnostic: "<Kind> error at line L, col C: message", the source
+ * line with a caret under column C, then the parser state, expected
+ * terminals and hint when present.
+ * source_line may be NULL (then no caret is drawn). */
 void diag_print(const Grammar *g, const Diagnostic *d, const char *source_line, FILE *out);
 
 #endif

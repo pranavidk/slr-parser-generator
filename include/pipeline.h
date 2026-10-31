@@ -33,6 +33,9 @@ typedef struct {
     ParseTree tree;            /* parse tree of the last statement compiled */
 } SLRGen;
 
+/* Load a grammar and build every table from it. Returns a heap-allocated
+ * generator (release with gen_free), or NULL with a message in err.
+ * A grammar with conflicts still loads; check table_is_slr(&gen->table). */
 SLRGen *gen_from_text(const char *grammar_text, char *err, size_t errlen);
 SLRGen *gen_from_file(const char *path, char *err, size_t errlen);
 void    gen_free(SLRGen *gen);
@@ -59,7 +62,10 @@ typedef struct {
     int n, naccepted, nerrors;
 } CompileResult;
 
-/* Split source into statements. out == NULL just counts them. */
+/* Split source into statements at newlines and at ';' (unless ';' is a
+ * terminal of the grammar); blank statements are skipped. Returns the
+ * count, at most max when out is given.
+ * out == NULL just counts them. */
 int  gen_split(const SLRGen *gen, const char *src, Statement *out, int max);
 
 /* Lex + parse + translate one statement. trace may be NULL. */
