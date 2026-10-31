@@ -1,5 +1,19 @@
 /*
  * Module 2 - LR(0) Items, closure(), GOTO(), Canonical Collection (Owner: Member 2 - Prithvi, 24BCE2778)
+ *
+ *   lr0_closure()  adds B -> .g for every nonterminal B right after a dot,
+ *                  until no new item appears, then sorts the set.
+ *   lr0_goto()     moves the dot over one symbol in every item where that
+ *                  symbol is next, then takes the closure.
+ *   lr0_build()    starts from I0 = closure({S' -> .S}) and visits states
+ *                  in creation order, applying GOTO to each symbol in the
+ *                  order it first appears after a dot. A result equal to an
+ *                  existing state reuses that state's number; otherwise it
+ *                  becomes a new state. The order is fixed, so state
+ *                  numbers are the same on every run.
+ *
+ * Item sets are kept sorted by (prod, dot), so two states can be compared
+ * with a single memcmp.
  */
 #include "lr0.h"
 
