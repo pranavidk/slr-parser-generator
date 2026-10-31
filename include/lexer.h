@@ -39,9 +39,14 @@ typedef struct {
     int punct[MAX_SYMBOLS], npunct;        /* longest first */
 } Lexer;
 
+/* Build the token classes (id/num, keywords, punctuation) from g's
+ * terminals. g must outlive lx. */
 void lexer_init(Lexer *lx, const Grammar *g);
 
-/* Returns the number of tokens written (always ends with '$'). */
+/* Tokenize one statement. `line` and `col_offset` place the tokens in the
+ * original source so diagnostics point at the right column. Lexical errors
+ * go to errs (at most max_errs, count in *nerrs) and the bad text is
+ * skipped. Returns the number of tokens written (always ends with '$'). */
 int  lexer_tokenize(const Lexer *lx, const char *text, int line, int col_offset,
                     Token *toks, int max_toks, LexError *errs, int max_errs, int *nerrs);
 

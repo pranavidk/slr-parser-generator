@@ -60,17 +60,26 @@ typedef struct {
     int  nwarnings;
 } Grammar;
 
-/* Both return 0 on success, -1 on error (message written to err). */
+/* Parse grammar text (or a file holding it) into *g: augment with S' -> S,
+ * number the productions and record any validation warnings in
+ * g->warnings. Both return 0 on success, -1 on error (message written to
+ * err, including the line number for syntax errors). */
 int  grammar_from_text(Grammar *g, const char *text, char *err, size_t errlen);
 int  grammar_from_file(Grammar *g, const char *path, char *err, size_t errlen);
 
 int  grammar_find(const Grammar *g, const char *name);   /* symbol id or -1 */
+
+/* Write production `prod` as text, e.g. "E -> E + T"; an empty body is
+ * shown as "eps" (EPSILON_TEXT). */
 void production_str(const Grammar *g, int prod, char *buf, size_t n);
+
+/* Print the numbered productions, terminals, nonterminals, start symbol
+ * and any warnings. */
 void grammar_print(const Grammar *g, FILE *out);
 
 /* Small shared utilities */
-void  set_error(char *err, size_t errlen, const char *fmt, ...);
-void  str_append(char *buf, size_t n, const char *fmt, ...);
+void  set_error(char *err, size_t errlen, const char *fmt, ...);   /* printf into err; no-op if err is NULL */
+void  str_append(char *buf, size_t n, const char *fmt, ...);       /* printf onto the end of buf, truncating */
 char *read_text_file(const char *path);                  /* caller frees; NULL on failure */
 
 #endif

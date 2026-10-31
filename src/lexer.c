@@ -1,5 +1,19 @@
 /*
  * Lexer (Owner: Member 1 - Isaac, 24BCE2760)
+ *
+ * lexer_init() sorts the grammar's terminals into three groups: the 'id'
+ * and 'num' classes, keywords (terminals that look like identifiers) and
+ * punctuation (everything else, longest first). lexer_tokenize() then scans
+ * one statement in this order at each position:
+ *
+ *   1. whitespace          skipped
+ *   2. identifier          keyword if it equals a keyword terminal, else id
+ *   3. number              digits with an optional ".digits" part
+ *   4. punctuation         longest matching terminal
+ *   5. anything else       lexical error; a whole UTF-8 sequence is skipped
+ *
+ * Errors are collected rather than fatal, and the stream always ends with
+ * '$' placed just past the end of the statement.
  */
 #include "lexer.h"
 

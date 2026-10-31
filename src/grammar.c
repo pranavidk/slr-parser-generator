@@ -1,5 +1,22 @@
 /*
  * Module 1 - Grammar Specification, Loading & Augmentation (Owner: Member 1 - Isaac, 24BCE2760)
+ *
+ * Turns grammar text into the numbered, augmented Grammar used by every
+ * later stage. Loading happens in two passes:
+ *
+ *   grammar_from_text()  reads the text line by line (UTF-8 BOM skipped,
+ *                        '#' comments stripped, UTF-8 arrow accepted) and
+ *                        collects one RawRule per alternative, with syntax
+ *                        errors reported by line number.
+ *   build()              interns symbols (S' first, then rule heads, then
+ *                        terminals in order of appearance, '$' last), adds
+ *                        prods[0] = S' -> S and numbers the user rules 1..n.
+ *   validate()           adds warnings (not errors) for nonterminals that
+ *                        are unreachable from S' or can never derive a
+ *                        terminal string.
+ *
+ * Also holds the small shared helpers (set_error, str_append,
+ * read_text_file) used by the other modules.
  */
 #include "grammar.h"
 
