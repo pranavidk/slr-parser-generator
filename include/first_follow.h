@@ -24,8 +24,15 @@ typedef struct {
     SymSet follow[MAX_SYMBOLS];
 } Sets;
 
+/* Fill first[], nullable[] and follow[] for every symbol of g. */
 void   compute_sets(const Grammar *g, Sets *s);
+
+/* FIRST of the sequence syms[0..n-1]. *nullable is set to 1 if the whole
+ * sequence can derive epsilon (always for n == 0), else 0. */
 SymSet first_of_seq(const Sets *s, const int *syms, int n, int *nullable);
+
+/* Table of FIRST and FOLLOW per nonterminal (S' omitted); "eps" is
+ * listed in FIRST of nullable nonterminals. */
 void   sets_print(const Grammar *g, const Sets *s, FILE *out);
 
 #endif

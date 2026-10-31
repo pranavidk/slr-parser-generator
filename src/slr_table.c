@@ -1,5 +1,21 @@
 /*
  * Module 3b - SLR ACTION/GOTO table + conflict detection (Owner: Member 3 - Nitin, 24BCE2819)
+ *
+ * table_build() scans every item of every LR(0) state once:
+ *   dot before a terminal  -> shift to the LR(0) transition on it
+ *   S' -> S .              -> accept on '$'
+ *   A -> a .  (A != S')    -> reduce on each terminal in FOLLOW(A)
+ * and copies the nonterminal transitions into the GOTO part.
+ *
+ * Every ACTION write goes through set_action(). If the cell already holds a
+ * different action, it records a Conflict for that cell, or adds the new
+ * action to the existing record. It then picks the winner: shift first,
+ * then accept, then the lowest-numbered reduce. Once MAX_CONFLICTS
+ * conflicts are recorded, later conflicting writes are ignored and the cell
+ * keeps its first action.
+ *
+ * The output helpers print the table, write it as CSV, and list each
+ * conflict with the items that caused it.
  */
 #include "slr_table.h"
 

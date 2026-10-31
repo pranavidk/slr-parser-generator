@@ -48,14 +48,22 @@ typedef struct {
     int    nconflicts;
 } SLRTable;
 
+/* Fill ACTION/GOTO from the LR(0) collection and FOLLOW sets and record any
+ * conflicts. t keeps pointers to g, lr and sets, so they must outlive it. */
 void table_build(SLRTable *t, const Grammar *g, const LR0 *lr, const Sets *sets);
-int  table_is_slr(const SLRTable *t);
+int  table_is_slr(const SLRTable *t);    /* 1 if no conflicts were recorded */
 
 /* Terminals with a non-empty ACTION entry in `state` (for error messages). */
 int  table_expected(const SLRTable *t, int state, int *out);
 
+/* "s<n>", "r<n>", "acc", or "" for an empty cell. */
 void action_str(Action a, char *buf, size_t n);
+
+/* ACTION/GOTO table as fixed-width text, one row per state. */
 void table_print(const SLRTable *t, FILE *out);
+
+/* One line per conflict (kind, state, terminal, competing actions, which
+ * one was chosen) plus the items involved; or a "grammar is SLR(1)" line. */
 void table_print_conflicts(const SLRTable *t, FILE *out);
 
 /* ACTION/GOTO table as CSV (RFC 4180): header row "State", the terminals

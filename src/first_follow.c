@@ -1,5 +1,16 @@
 /*
  * Module 3a - FIRST / FOLLOW (Owner: Member 3 - Nitin, 24BCE2819)
+ *
+ * compute_sets() runs two fixed-point loops over the productions:
+ *
+ *   FIRST  : FIRST(a) = {a} for each terminal a. For each production A -> X1..Xn,
+ *            add FIRST(X1..Xn) to FIRST(A). If every Xi is nullable
+ *            (including n == 0), A becomes nullable.
+ *   FOLLOW : FOLLOW(S') = {$}. For each B in A -> a B b, add FIRST(b);
+ *            if b is nullable, also add FOLLOW(A).
+ *
+ * Each loop repeats until a full pass changes nothing. Epsilon is not stored
+ * as a bit in the set; it is tracked separately in nullable[].
  */
 #include "first_follow.h"
 
